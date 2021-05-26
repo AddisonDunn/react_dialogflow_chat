@@ -1,9 +1,9 @@
-import { Box, Button, Grid, makeStyles, TextField, Typography } from "@material-ui/core";
-import { AddBox } from "@material-ui/icons";
+import { Box, Button, makeStyles, TextField } from "@material-ui/core";
 import SendSharpIcon from '@material-ui/icons/SendSharp';
 import { useEffect, useState } from "react";
 import ChatBubble from "./ChatBubble";
 import axios from "axios";
+import {BotSession} from "../../util/BotSession.js"
 
 const useStyles = makeStyles(theme => ({
     root: {
@@ -28,7 +28,12 @@ const useStyles = makeStyles(theme => ({
     chats: {
         overflow: "auto",
         bottom: 0,
-        height: "100%"
+        height: "100%",
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        '&::-webkit-scrollbar': {
+            display: "none !important"
+        },
+        scrollbarWidth: "none",  /* Firefox */
     },
     textFieldInputRoot: {
         height: "1.8rem",
@@ -41,53 +46,83 @@ const useStyles = makeStyles(theme => ({
     
 }));
 
+// To do: add botMessage chatbubble after user message chat bubble if botmessage chatbubble exists.
+// If not, add a "..." chat bubbble while waiting
+
 export default function ChatInterface() {
     const classes = useStyles();
 
+    const botSession = new BotSession()
+
+    const [initialBotMessage, setInitialBotMessage] = useState("")
     const [activeUserMessage, setActiveUserMessage] = useState("")
-    const [messages, setUserMessages] = useState([])
-    const [numMessages, setNumMessages] = useState(0)
+    const [userMessages, setUserMessages] = useState([])
+    const [botMessages, setBotMessages] = useState([])
     const [messagesEnd, setMessagesEnd] = useState(null)
+    const [errorMsg, setErrorMsg] = useState("")
 
-
+    // Effects that take place only upon initial render.
+    useEffect( () => {
+        botSession.getWelcomeMessage().then( (message) => {
+            console.log("firstBotMessage: " + message)
+            setInitialBotMessage(message)
+        }).catch( (errMsg) => {
+            setErrorMsg("Our bot had a problem getting the welcome message. Sorry!")
+            setInitialBotMessage("Uh oh: Our bot had a problem getting the welcome message. Sorry!")
+        });
+        
+    }, [])
+    
+    // Effects that take place when new messages are sent.
     useEffect( () => {
         if(messagesEnd) {
+            scrollToBottom()
+        }
+
+        function scrollToBottom() {
             messagesEnd.scrollIntoView(false, { block: "end" });
         }
 
-    }, [numMessages])
+        async function sendMessageToDialogflow(messageText, userMessageIndex) {
+
+            botSession.sendMessageToBot(messageText).then( (message) => {
+                sendBotMessage(message, userMessageIndex)
+            })
+
+        }
+
+        function sendBotMessage(message, userMessageIndex) {
+            let newMessage = {
+                message: message,
+                inReplyToUserMessageIndex: userMessageIndex,
+                index: 0
+            }
+            setBotMessages(prevState => [
+                ...prevState,
+                newMessage
+            ])
+            scrollToBottom()
+        }
+
+        if (userMessages.length) {
+            sendMessageToDialogflow(userMessages[userMessages.length - 1].message, userMessages.length - 1)
+        }
+        
+
+
+    }, [userMessages])
 
     function sendUserMessage() {
         let newMessage = {
-            sender: "user",
             message: activeUserMessage,
-            index: numMessages
+            index: userMessages.length
         }
-        setUserMessages( [
-            ...messages,
+        setUserMessages( prevState => [
+            ...prevState,
             newMessage
         ])
-        setNumMessages(numMessages + 1)
+        // sendMessageToDialogflow(activeUserMessage, numMessages + 1)
         setActiveUserMessage("")
-        // scrollToBottom()
-    }
-
-    function sendMessageToRasaBot(messageText) {
-
-    }
-
-    function sendBotMessage(message) {
-        let newMessage = {
-            sender: "bot",
-            message: message,
-            index: numMessages
-        }
-        setUserMessages([
-            ...messages,
-            newMessage
-        ])
-        setNumMessages(numMessages + 1)
-        console.log("bot message sent")
     }
 
     
@@ -98,7 +133,6 @@ export default function ChatInterface() {
     function handleKeypress(event, value) {
         if (event.charCode === 13) {
             sendUserMessage()
-            console.log("enter pressed")
         }
 
     }
@@ -117,10 +151,22 @@ export default function ChatInterface() {
                     flexDirection="column"
                     justifyContent="flex-end"
                     >
-                        {messages.map(message =>
-                            <ChatBubble sender={message.sender}
-                                key={message.index}
-                                message={message.message} />
+                        {initialBotMessage? 
+                        <ChatBubble sender="bot"
+                        message={initialBotMessage} />
+                        : null}
+                        {userMessages.map(userMessage =>
+                            <span key={userMessage.index}>
+                                <ChatBubble sender="user"
+                                    message={userMessage.message} />
+                                {botMessages.filter(botMessage => botMessage.inReplyToUserMessageIndex === userMessage.index)
+                                    .map(botReply => 
+                                     <ChatBubble sender="bot"
+                                        key={botReply.index}
+                                        message={botReply.message} />)
+                                }
+                            </span> 
+
                         )}
                         <div style={{ float: "left", clear: "both" }}
                             ref={(el) => { setMessagesEnd(el) }}>
@@ -142,7 +188,7 @@ export default function ChatInterface() {
                             
                         />
                     </Box>
-                    <Button onClick={sendUserMessage} icon><SendSharpIcon color="primary"/></Button>
+                    <Button onClick={sendUserMessage} icon="true"><SendSharpIcon color="primary"/></Button>
                 </Box>
                     
             </Box>
