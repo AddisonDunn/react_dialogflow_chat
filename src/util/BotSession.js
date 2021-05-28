@@ -4,6 +4,7 @@ import axios from "axios";
 export class BotSession {
     constructor(username = null, isNewUser = true) {
         this.username = username;
+        this.contexts = []
 
         var env = process.env.NODE_ENV || 'development';
         if ( env === "test" ) {
@@ -31,6 +32,7 @@ export class BotSession {
             }).then(response => {
             console.log("response: " + JSON.stringify(response.data));
             dialogflowReply = response.data.fulfillmentText;
+            this.contexts = response.data.outputContexts;
             resolve(dialogflowReply);
             }).catch((err) => {
                 console.log("There was an error fetching the message from dialogflow.");
@@ -46,10 +48,12 @@ export class BotSession {
         return new Promise((resolve, reject) => {
             axios.post(bot_post_url, {
                 sessionId: this.sessionId,
-                message: message
+                message: message,
+                contexts: this.contexts
             }).then(response => {
-                console.log("response: " + JSON.stringify(response.data));
+                console.log((response.data));
                 dialogflowReply = response.data.fulfillmentText;
+                this.contexts = response.data.outputContexts;
                 resolve(dialogflowReply);
             }).catch((err) => {
                 console.log("There was an error fetching the message from dialogflow.");

@@ -30,7 +30,7 @@ const useStyles = makeStyles(theme => ({
     messageText: {
         padding: "10px 25px",
         color: "white",
-        fontSize: "1.5rem",
+        fontSize: "1.2rem",
         [theme.breakpoints.down('xs')]: {
             fontSize: "1rem",
             padding: "7px 17px",

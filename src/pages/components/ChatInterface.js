@@ -2,7 +2,6 @@ import { Box, Button, makeStyles, TextField } from "@material-ui/core";
 import SendSharpIcon from '@material-ui/icons/SendSharp';
 import { useEffect, useState } from "react";
 import ChatBubble from "./ChatBubble";
-import axios from "axios";
 import {BotSession} from "../../util/BotSession.js"
 
 const useStyles = makeStyles(theme => ({
@@ -11,7 +10,7 @@ const useStyles = makeStyles(theme => ({
         // borderColor: "primary",
         borderRadius: "5px",
         padding: "20px",
-        height: "800px",
+        height: "600px",
         [theme.breakpoints.down('xs')]: {
             height: "600px"
         },
@@ -36,8 +35,8 @@ const useStyles = makeStyles(theme => ({
         scrollbarWidth: "none",  /* Firefox */
     },
     textFieldInputRoot: {
-        height: "1.8rem",
-        fontSize: "1.4rem",
+        height: "1.5rem",
+        fontSize: "1.2rem",
         [theme.breakpoints.down('xs')]: {
             height: "1.2rem",
             fontSize: "1rem",
@@ -52,7 +51,7 @@ const useStyles = makeStyles(theme => ({
 export default function ChatInterface() {
     const classes = useStyles();
 
-    const botSession = new BotSession()
+    const [botSession] = useState(new BotSession())
 
     const [initialBotMessage, setInitialBotMessage] = useState("")
     const [activeUserMessage, setActiveUserMessage] = useState("")
@@ -64,7 +63,6 @@ export default function ChatInterface() {
     // Effects that take place only upon initial render.
     useEffect( () => {
         botSession.getWelcomeMessage().then( (message) => {
-            console.log("firstBotMessage: " + message)
             setInitialBotMessage(message)
         }).catch( (errMsg) => {
             setErrorMsg("Our bot had a problem getting the welcome message. Sorry!")
@@ -178,7 +176,7 @@ export default function ChatInterface() {
                 className={classes.chatMessageSection}>
                     <Box flexGrow="1">
                         <TextField fullWidth 
-                            placeholder="Send a message.."
+                            placeholder="Send a message..."
                             value={activeUserMessage}
                             onChange={handleActiveUserMessageChange}
                             onKeyPress={handleKeypress}
