@@ -14,10 +14,10 @@ export default function MainPage() {
 
     return <div className={classes.root} >
         <Container maxWidth="xl">
-            <Grid container style={{flexWrap: "wrap-reverse"}}>
-                <Grid item md={4} xs={12}>
-                    Other contect
-                </Grid>
+            <Grid container style={{flexWrap: "wrap-reverse"}} justify="center">
+                {/* <Grid item md={4} xs={12}>
+                    
+                </Grid> */}
 
                 <Grid item md={8} xs={12}>
                     <Container className={classes.chatContainer}
