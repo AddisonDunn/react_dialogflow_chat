@@ -1,4 +1,4 @@
-import { Container, Grid, makeStyles } from "@material-ui/core";
+import { Box, Container, Grid, makeStyles, Typography } from "@material-ui/core";
 import ChatInterface from "./components/ChatInterface.js"
 
 const useStyles = makeStyles({
@@ -15,13 +15,13 @@ export default function MainPage() {
     return <div className={classes.root} >
         <Container maxWidth="xl">
             <Grid container style={{flexWrap: "wrap-reverse"}} justify="center">
-                {/* <Grid item md={4} xs={12}>
-                    
-                </Grid> */}
-
                 <Grid item md={8} xs={12}>
-                    <Container className={classes.chatContainer}
-                        >
+                    <Box pt={4}>
+                    <Typography variant="h3" color="secondary">
+                        Birthday Bot!
+                    </Typography>
+                    </Box>
+                    <Container className={classes.chatContainer}>
                         <ChatInterface />
                     </Container>
                     

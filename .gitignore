@@ -3,3 +3,10 @@ node_modules
 .env
 
 google-cloud-env/
+
+.env
+
+google-cloud-sdk/
+venv/
+node_modules/
+google-cloud-service-acccount-albert-kami.json
